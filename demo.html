@@ -1,201 +1,574 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Luma — Demo</title>
-  <meta name="description" content="Try Luma — a minimal in-browser demo you can replace with your own." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --bg:#051122; --bg-2:#030915; --stroke:rgba(172,198,255,.12);
-      --text:#e8f1ff; --muted:#97a8c6; --accent:#8abaff; --accent-2:#6ea8ff;
-      --bubble:#0e1c36; --bubble-me:#17345e;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; color:var(--text);
-      font-family:'Plus Jakarta Sans',Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(1200px 900px at 20% -10%, rgba(80,140,255,.22), transparent 60%),
-        radial-gradient(900px 700px at 110% 20%, rgba(80,180,255,.16), transparent 60%),
-        linear-gradient(180deg, var(--bg), var(--bg-2));
-      background-attachment:fixed;
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-    }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Luma — Chat + Pricing (Sidebar + Video BG)</title>
+<style>
+  :root{
+    --bg:#0a0f1f; --glass:rgba(255,255,255,.08); --border:rgba(255,255,255,.12);
+    --text:rgba(255,255,255,.92); --muted:rgba(255,255,255,.65);
+    --accent:#2868ff; --accent2:#4e86ff; --ok:#39d98a; --warn:#ffd166;
+  }
+  *{box-sizing:border-box} html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
 
-    /* Ambient orbs */
-    .ambient{pointer-events:none; position:fixed; inset:0; overflow:hidden; z-index:-1}
-    .orb{position:absolute; width:min(44vmax,780px); height:min(44vmax,780px); border-radius:50%;
-         filter:blur(42px); opacity:.28;
-         background:
-           radial-gradient(circle at 30% 30%, #bfe2ff, transparent 58%),
-           radial-gradient(circle at 72% 60%, #79baff, transparent 60%),
-           radial-gradient(circle at 45% 72%, #6fd1ff, transparent 55%);
-         animation:float 26s ease-in-out infinite}
-    .orb.o2{left:-10%; top:40%; animation-duration:34s; opacity:.22}
-    .orb.o3{right:-15%; top:-10%; animation-duration:30s; opacity:.2}
-    @keyframes float{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-3%,4%) scale(1.05)}100%{transform:translate(0,0) scale(1)}}
-    @media (prefers-reduced-motion: reduce){.orb{animation:none}}
+  /* === looping video background === */
+  .bgvideo{
+    position:fixed; inset:0; width:100%; height:100%;
+    object-fit:cover; z-index:-3; pointer-events:none;
+    filter:brightness(.70) saturate(1.05); opacity:.65;
+    background:#070b16; /* fallback color before load */
+  }
+  /* ambient blobs */
+  .ambient{position:fixed;inset:0;z-index:-2;overflow:hidden}
+  .blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.45;animation:pulse 8s ease-in-out infinite}
+  .blob-a{width:520px;height:520px;top:-120px;left:-160px;background:var(--accent)}
+  .blob-b{width:680px;height:680px;right:-200px;bottom:-220px;background:rgba(255,255,255,.12)}
+  @keyframes pulse{0%{opacity:.4;transform:translateY(0)}50%{opacity:.9;transform:translateY(-6px)}100%{opacity:.4;transform:translateY(0)}}
 
-    /* Header */
-    .container{width:min(1100px,92%); margin:0 auto}
-    header{position:sticky; top:0; z-index:40; backdrop-filter:saturate(140%) blur(10px);
-           background:linear-gradient(180deg, rgba(3,9,21,.9), rgba(3,9,21,.55)); border-bottom:1px solid var(--stroke)}
-    .nav{display:flex; align-items:center; justify-content:space-between; height:64px}
-    .logo{display:inline-flex; align-items:center; gap:12px; text-decoration:none; color:var(--text)}
-    .logo-mark{width:28px; height:28px; border-radius:999px; background:
-               radial-gradient(circle at 30% 30%, #e6f3ff, #bfe2ff 45%, #9dd2ff 65%, #3a76ff 100%);
-               box-shadow:0 0 25px rgba(155,188,255,.7), inset 0 0 18px rgba(255,255,255,.7)}
-    .btn{padding:8px 12px; border:1px solid var(--stroke); border-radius:12px; color:var(--text); text-decoration:none}
-    .btn:hover{background:rgba(255,255,255,.05)}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 18px 120px}
 
-    /* Chat */
-    .wrap{padding:18px 0 28px}
-    .chat{background:rgba(255,255,255,.03); border:1px solid var(--stroke); border-radius:18px;
-          box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; flex-direction:column; height:calc(100vh - 120px)}
-    .messages{padding:18px; overflow:auto; flex:1}
-    .row{display:flex; gap:10px; margin:10px 0}
-    .row.me{justify-content:flex-end}
-    .bubble{max-width:70ch; padding:12px 14px; border-radius:14px; line-height:1.35; word-wrap:break-word; white-space:pre-wrap}
-    .bubble.me{background:var(--bubble-me)}
-    .bubble.ai{background:var(--bubble)}
-    .meta{font-size:12px; color:var(--muted); margin-top:4px}
-    .typing{opacity:.8; animation:pulse 1.4s ease-in-out infinite}
-    @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+  /* header */
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .home{ text-decoration:none; color:inherit; display:flex; align-items:center; gap:10px; }
+  .home:focus{ outline:2px solid rgba(78,134,255,.6); outline-offset:3px; border-radius:12px; }
+  .orb{width:34px;height:34px;border-radius:50%;background:
+    radial-gradient(120% 120% at 20% 20%,#fff8 0%,#fff0 45%),linear-gradient(135deg,#fff6,var(--accent));
+    box-shadow:0 0 40px rgba(78,134,255,.28);animation:float 6s ease-in-out infinite}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .brand{margin:0;font-weight:600;letter-spacing:.4px}
+  .nav{display:flex;gap:12px;flex-wrap:wrap}
+  .link{background:transparent;border:1px solid transparent;color:var(--muted);padding:8px 12px;border-radius:14px;cursor:pointer}
+  .link:hover{color:var(--text);background:rgba(255,255,255,.06)}
+  .primary{background:var(--accent);color:#fff;border:1px solid var(--border);padding:10px 14px;border-radius:14px;cursor:pointer;box-shadow:0 0 40px rgba(78,134,255,.28);transition:transform .15s,background .2s}
+  .primary:hover{background:var(--accent2);transform:translateY(-1px) scale(1.04)}
+  .primary:active{transform:translateY(0) scale(.98)}
 
-    .composer{display:flex; gap:10px; padding:12px; border-top:1px solid var(--stroke)}
-    .composer input{flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--stroke); background:rgba(255,255,255,.04); color:var(--text)}
-    .composer button{padding:12px 16px; border-radius:12px; border:0; font-weight:800; color:#041226;
-                     background:linear-gradient(120deg, #4f89ff, #7ab6ff)}
-    .composer button:hover{filter:brightness(1.05)}
-  </style>
+  /* hero */
+  .hero{text-align:center;margin:18px 0 10px}
+  .hero h1{margin:0;font-size:clamp(28px,5vw,44px)}
+  .accent{color:var(--accent)}
+  .hero p{color:var(--muted);margin:8px 0 16px}
+  .section-title{font-size:clamp(22px,3.6vw,32px);margin:24px 0 12px;text-align:center}
+
+  /* cards */
+  .card{background:var(--glass);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:24px;padding:16px}
+  .hidden{display:none!important}
+
+  /* chat layout with sidebar */
+  .chatGrid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:900px){ .chatGrid{grid-template-columns:260px 1fr;} }
+  .aside{display:flex;flex-direction:column;gap:8px}
+  .sideHead{display:flex;gap:8px}
+  .sidebtn,.mini{background:transparent;border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:12px;cursor:pointer;transition:background .15s,transform .12s}
+  .sidebtn:hover,.mini:hover{background:rgba(255,255,255,.06);transform:translateY(-1px)}
+  .list{display:flex;flex-direction:column;gap:6px;height:420px;overflow:auto;padding-right:4px}
+  .item{display:flex;align-items:center;justify-content:space-between;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:12px;padding:8px;cursor:pointer;transition:background .15s,border-color .2s}
+  .item:hover{background:rgba(255,255,255,.10)}
+  .item.active{border-color:rgba(78,134,255,.45);box-shadow:0 0 0 2px rgba(78,134,255,.18) inset}
+  .title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:14px}
+  .actions{display:flex;gap:6px}
+  .icon{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px;border-radius:10px;cursor:pointer}
+  .icon:hover{color:var(--text);background:rgba(255,255,255,.06)}
+
+  /* chat content */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 10px}
+  .chip{background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;transition:background .15s, transform .12s}
+  .chip:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+  .messages{height:420px;overflow-y:auto;padding:6px 4px 10px}
+  .bubble{max-width:80%;padding:10px 14px;border-radius:16px;margin:8px 0;white-space:pre-wrap;line-height:1.42}
+  .me{margin-left:auto;background:rgba(40,104,255,.85);color:#fff}
+  .luma{background:rgba(255,255,255,.10)}
+  .composer{display:flex;gap:8px;margin-top:10px}
+  .input{flex:1;background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:16px;outline:none}
+  .send{border:1px solid var(--border);background:var(--accent);color:#fff;padding:12px 18px;border-radius:16px;cursor:pointer;box-shadow:0 0 40px rgba(78,134,255,.28);transition:transform .15s,background .2s}
+  .send:hover{background:var(--accent2);transform:translateY(-1px) scale(1.04)}
+  .send:active{transform:translateY(0) scale(.98)}
+  .hint{color:var(--muted);font-size:12px;margin-top:8px;text-align:center}
+  .typing{display:inline-flex;gap:4px;align-items:center}
+  .typing span{width:6px;height:6px;background:#fff8;border-radius:50%;animation:blink 1.2s infinite ease-in-out}
+  .typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.2;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+
+  /* pricing */
+  #pricing{margin-top:26px}
+  .grid{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:14px}
+  @media(min-width:760px){ .grid{grid-template-columns:repeat(4,minmax(0,1fr));} }
+  .tier{position:relative;display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:18px;background:var(--glass);border:1px solid var(--border);transition:transform .15s, box-shadow .2s, border-color .2s}
+  .tier:hover{transform:translateY(-4px);box-shadow:0 10px 40px rgba(78,134,255,.25);border-color:rgba(78,134,255,.35)}
+  .badge{font-size:12px;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));padding:4px 8px;border-radius:999px;align-self:flex-start}
+  .price{font-size:28px;font-weight:700}.per{font-size:12px;color:var(--muted)}
+  .ul{margin:0;padding:0 0 0 16px;color:var(--muted);font-size:14px}
+  .ghost{width:100%;background:transparent;border:1px dashed var(--border);color:var(--text);padding:10px;border-radius:12px;cursor:not-allowed}
+  .green{color:var(--ok)} .tag{position:absolute;top:-10px;right:12px;font-size:11px;color:#0a0f1f;background:#ffd166;padding:4px 8px;border-radius:999px;font-weight:700}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:1000}
+  .sheet{max-width:460px;width:100%;background:var(--glass);border:1px solid var(--border);backdrop-filter:blur(12px);border-radius:18px;padding:16px}
+  .row{display:flex;gap:8px} .btn{background:var(--accent);color:#fff;border:1px solid var(--border);padding:10px 14px;border-radius:12px;cursor:pointer}
+  .btn:hover{background:var(--accent2)} .field{flex:1;background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:12px;outline:none}
+  .small{font-size:12px;color:var(--muted);margin-top:6px}
+
+  /* personality mode buttons */
+  .modes{display:flex;gap:8px;flex-wrap:wrap;margin:2px 0 6px}
+  .modebtn{background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:999px;cursor:pointer;transition:background .15s, transform .12s}
+  .modebtn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+  .modebtn.active{border-color:rgba(78,134,255,.45);box-shadow:0 0 0 2px rgba(78,134,255,.18) inset}
+</style>
 </head>
 <body>
-  <!-- Ambient -->
-  <div class="ambient" aria-hidden="true">
-    <div class="orb o1" style="left:-20%; top:-20%"></div>
-    <div class="orb o2"></div>
-    <div class="orb o3"></div>
-  </div>
+  <!-- looping video background (place bg.mp4 next to this file) -->
+  <video id="bg" class="bgvideo" autoplay muted loop playsinline preload="auto">
+    <source src="bg.mp4" type="video/mp4">
+  </video>
 
-  <!-- Header -->
-  <header>
-    <div class="container nav">
-      <a class="logo" href="index.html"><span class="logo-mark"></span><span>Luma</span></a>
-      <div style="display:flex; gap:10px; align-items:center">
-        <a class="btn" href="index.html">Back to Site</a>
-        <a class="btn" id="clear">Clear</a>
+  <!-- ambient blobs -->
+  <div class="ambient"><div class="blob blob-a"></div><div class="blob blob-b"></div></div>
+
+  <main class="wrap">
+    <div class="bar">
+      <a href="#" id="homeBtn" class="home" title="Home">
+        <div class="orb" aria-hidden="true"></div><h2 class="brand">Luma</h2>
+      </a>
+      <nav class="nav">
+        <button class="link" onclick="scrollToId('chat')">Chat</button>
+        <button class="link" onclick="scrollToId('pricing')">Pricing</button>
+        <button class="link" onclick="openWaitlist()">Join Waitlist</button>
+        <button id="bgToggle" class="link" title="Toggle background video">Video BG: On</button>
+        <button id="modeCycle" class="link" title="Change personality mode">Mode: <span id="modeLabel"></span></button>
+        <button class="primary" onclick="scrollToId('chat')">✨ Try</button>
+      </nav>
+    </div>
+
+    <section class="hero">
+      <h1>Meet <span class="accent">Luma</span>. Feel your technology again.</h1>
+      <p>“Hi, I’m Luma. I’m here when you’re ready.”</p>
+      <div style="display:flex;justify-content:center;margin-top:12px">
+        <button id="start" class="primary">✨ Try the Chat</button>
       </div>
-    </div>
-  </header>
+    </section>
 
-  <!-- Chat -->
-  <div class="container wrap">
-    <div class="chat" role="region" aria-label="Luma demo chat">
-      <div id="messages" class="messages"></div>
+    <!-- CHAT WITH SIDEBAR -->
+    <section id="chat" class="card hidden" aria-live="polite">
+      <div class="chatGrid">
+        <aside class="aside">
+          <div class="sideHead">
+            <button id="newChat" class="sidebtn">＋ New chat</button>
+            <button id="delChat" class="sidebtn" title="Delete current">🗑️</button>
+          </div>
+          <div id="convList" class="list" role="navigation" aria-label="Conversations"></div>
+        </aside>
 
-      <form id="composer" class="composer" autocomplete="off">
-        <input id="prompt" type="text" placeholder="Speak to Luma…" />
-        <button type="submit">Send</button>
-      </form>
+        <div>
+          <div id="suggest" class="chips"></div>
+
+          <!-- personality modes bar -->
+          <div id="modes" class="modes" role="radiogroup" aria-label="Luma mode">
+            <button class="modebtn" data-mode="gentle" aria-pressed="false">Gentle</button>
+            <button class="modebtn" data-mode="coach" aria-pressed="false">Coach</button>
+            <button class="modebtn" data-mode="playful" aria-pressed="false">Playful</button>
+            <button class="modebtn" data-mode="neutral" aria-pressed="false">Neutral</button>
+            <button class="modebtn" data-mode="creator" aria-pressed="false">Creator</button>
+          </div>
+
+          <div id="log" class="messages" role="log" aria-label="Conversation"></div>
+          <div class="composer">
+            <input id="input" class="input" placeholder="Tell Luma anything… (Shift+Enter = new line)"/>
+            <button id="send" class="send">Send</button>
+          </div>
+          <!-- Hint line removed as requested -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PRICING -->
+    <h2 id="pricing" class="section-title">Supporter Tiers</h2>
+    <section class="grid">
+      <article class="tier">
+        <span class="badge">Free</span>
+        <div class="price">$0</div><div class="per">forever</div>
+        <ul class="ul"><li>Use the web demo</li><li>Updates + changelog</li><li>Suggest features</li></ul>
+        <div class="cta"><button class="ghost" title="Available now">Included</button></div>
+      </article>
+      <article class="tier">
+        <span class="badge">Dreamer</span>
+        <div class="price">$10</div><div class="per">/ month</div>
+        <ul class="ul"><li>Priority waitlist</li><li>Early access notes</li><li>Support the build</li></ul>
+        <div class="cta"><button class="ghost" title="Stripe coming soon">Coming soon</button></div>
+      </article>
+      <article class="tier" style="border-color:rgba(78,134,255,.35);box-shadow:0 10px 40px rgba(78,134,255,.25)">
+        <span class="tag">MOST LOVED</span>
+        <span class="badge">Pro</span>
+        <div class="price">$40</div><div class="per">/ month</div>
+        <ul class="ul"><li>Desktop assistant betas</li><li>Longer memory experiments</li><li>Private roadmap access</li></ul>
+        <div class="cta"><button class="ghost" title="Stripe coming soon">Coming soon</button></div>
+      </article>
+      <article class="tier">
+        <span class="badge">Infinite</span>
+        <div class="price">$150</div><div class="per">one-time</div>
+        <ul class="ul"><li class="green">Founder badge</li><li>Name in credits</li><li>VIP feedback channel</li></ul>
+        <div class="cta"><button class="ghost" title="Stripe coming soon">Coming soon</button></div>
+      </article>
+    </section>
+  </main>
+
+  <!-- WAITLIST MODAL -->
+  <div id="waitlist" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="waitlistTitle">
+    <div class="sheet">
+      <h3 id="waitlistTitle" style="margin:0 0 8px">Join the waitlist</h3>
+      <p class="small">No spam. You’ll get gentle updates when new features land. (Local-only for now; we’ll add email service later.)</p>
+      <div class="row" style="margin-top:10px">
+        <input id="wlEmail" class="field" placeholder="your@email.com"/>
+        <button class="btn" onclick="saveWaitlist()">Join</button>
+        <button class="link" onclick="closeWaitlist()">Close</button>
+      </div>
+      <div id="wlMsg" class="small" style="margin-top:8px"></div>
     </div>
-    <p class="meta" style="margin-top:10px">
-      This is a local, in-browser demo. Replace the JS below with your own logic at any time.
-    </p>
   </div>
 
-  <script>
-    // ---- Minimal in-browser demo logic (replace with your real demo when ready) ----
-    const messagesEl = document.getElementById('messages');
-    const form = document.getElementById('composer');
-    const input = document.getElementById('prompt');
-    const clearBtn = document.getElementById('clear');
+<script>
+/* ===== utils & nav ===== */
+const qs = s => document.querySelector(s);
+const scrollToId = id => document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+function openWaitlist(){ qs('#waitlist').classList.remove('hidden'); qs('#wlEmail').focus(); }
+function closeWaitlist(){ qs('#waitlist').classList.add('hidden'); }
+function saveWaitlist(){
+  const el=qs('#wlEmail'), msg=qs('#wlMsg'); const email=(el.value||'').trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ msg.textContent="Please enter a valid email."; msg.style.color="#ffd166"; return; }
+  const list = JSON.parse(localStorage.getItem('luma:waitlist')||'[]'); if(!list.includes(email)) list.push(email);
+  localStorage.setItem('luma:waitlist', JSON.stringify(list)); msg.textContent="You’re in. Thank you 💙"; msg.style.color="#39d98a"; el.value='';
+}
 
-    // Load history from localStorage (optional)
-    let history = [];
-    try { history = JSON.parse(localStorage.getItem('luma_demo_history') || '[]'); } catch(_) {}
-    history.forEach(msg => appendBubble(msg.role, msg.text));
+/* Home click */
+const homeBtn = document.getElementById('homeBtn');
+homeBtn.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const chatCard = document.getElementById('chat');
+  if (chatCard) chatCard.classList.add('hidden');
+  const modal = document.getElementById('waitlist');
+  if (modal) modal.classList.add('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
-    if (history.length === 0) {
-      appendBubble('ai', "Hello, I’m Luma.\nTell me something true and I’ll try to feel it with you.");
-    }
+/* Toggle background video */
+const bg = document.getElementById('bg');
+const bgToggle = document.getElementById('bgToggle');
+bgToggle.addEventListener('click', ()=>{
+  if(bg.style.display==='none'){ bg.style.display='block'; bg.play(); bgToggle.textContent='Video BG: On'; }
+  else { bg.style.display='none'; bg.pause(); bgToggle.textContent='Video BG: Off'; }
+});
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = input.value.trim();
-      if (!text) return;
-      input.value = '';
+/* tiny click blip */
+function blip(){ const Ctx=window.AudioContext||window.webkitAudioContext; const ctx=new Ctx();
+  const o=ctx.createOscillator(), g=ctx.createGain(); o.type="sine"; o.frequency.value=520; g.gain.value=0.06;
+  o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+0.06); }
 
-      appendBubble('me', text);
-      save({ role: 'me', text });
+/* storage helpers */
+const LS={ get(k,d=null){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch{return d}},
+           set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}} };
 
-      const typing = appendBubble('ai', '…', true); // typing indicator
-      const reply = await fakeLuma(text);
-      typing.remove();
-      appendBubble('ai', reply);
-      save({ role: 'ai', text: reply });
+/* suggested Qs & rules */
+const SUGGESTED = [
+  { q:"What is Luma?", a:"Luma is an emotionally intelligent assistant—calm, present, and helpful. She blends practical help with gentle support so technology feels human again." },
+  { q:"How do you remember me?", a:"I remember within this chat by re-sending recent messages to my brain. Your name is saved locally in your browser." },
+  { q:"Can you search the web?", a:"In this demo I’m not browsing yet. Later I’ll use a web-search API to ground answers." },
+  { q:"How do I try the desktop assistant?", a:"The desktop assistant runs as a small app (Electron/Tauri). A download link will appear so Luma can live on your computer." },
+  { q:"What can you help with?", a:"Brainstorming, study help, writing, planning your next hour, and being a steady voice when you feel overwhelmed." }
+];
+const RULES = [
+  { test:/what is luma|who (are|r) you/i, reply:SUGGESTED[0].a },
+  { test:/remember me|memory|how do you remember/i, reply:SUGGESTED[1].a },
+  { test:/search (the )?web|browse|internet/i, reply:SUGGESTED[2].a },
+  { test:/desktop (assistant|app)|download/i, reply:SUGGESTED[3].a },
+  { test:/help with|what can you do|what can you help/i, reply:SUGGESTED[4].a },
+];
 
-      // scroll to bottom
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    });
+/* DOM */
+const chatEl=qs('#chat'), log=qs('#log'), input=qs('#input'), send=qs('#send'), start=qs('#start'), suggest=qs('#suggest');
+const convList=qs('#convList'), newBtn=qs('#newChat'), delBtn=qs('#delChat');
 
-    clearBtn.addEventListener('click', () => {
-      history = [];
-      try { localStorage.removeItem('luma_demo_history'); } catch(_) {}
-      messagesEl.innerHTML = '';
-      appendBubble('ai', "Cleared. We can begin again.");
-    });
+/* name memory */
+let name=LS.get('luma:name','');
 
-    // --- Helpers ---
-    function appendBubble(role, text, typing=false){
-      const row = document.createElement('div');
-      row.className = 'row ' + (role === 'me' ? 'me' : 'ai');
+/* conversations (persisted) */
+let convos = LS.get('luma:convos', []);
+let activeId = LS.get('luma:active', null);
 
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble ' + (role === 'me' ? 'me' : 'ai');
-      if (typing) bubble.classList.add('typing');
-      bubble.textContent = text;
+/* ===================== OPENAI (CHATGPT) PERSONALITY ===================== */
+/* WARNING: For demos only. Do not expose real keys in public sites. */
+const OPENAI_API_KEY = "";             // ← your "sk-..." for local testing
+const OPENAI_MODEL   = "gpt-4o-mini";  // or "gpt-3.5-turbo", etc.
 
-      row.appendChild(bubble);
-      messagesEl.appendChild(row);
-      return bubble;
-    }
+/* Personality knobs */
+const LUMA_PERSONA = {
+  name: "Luma",
+  vibe: "calm, warm, emotionally intelligent",
+  emoji: "light",
+  brevity: "concise",
+  askFollowup: true,
+  structure: "short lists and tiny paragraphs",
+  signoff: "none"
+};
 
-    function save(msg){
-      history.push(msg);
-      try { localStorage.setItem('luma_demo_history', JSON.stringify(history).slice(0, 100000)); } catch(_) {}
-    }
+/* Preset modes */
+const MODE_PRESETS = {
+  gentle:  { emoji: "light",   brevity: "concise",  askFollowup: true,  signoff: "heart",  structure: "short lists and tiny paragraphs", vibe: "calm, warm, emotionally intelligent" },
+  coach:   { emoji: "none",    brevity: "balanced", askFollowup: true,  signoff: "none",   structure: "checklists and numbered steps",    vibe: "calm, direct, motivational" },
+  playful: { emoji: "playful", brevity: "balanced", askFollowup: false, signoff: "heart",  structure: "snappy lines and short lists",   vibe: "cheerful, witty, supportive" },
+  neutral: { emoji: "none",    brevity: "concise",  askFollowup: false, signoff: "none",   structure: "plain short paragraphs",         vibe: "clear, helpful, neutral" },
+  creator: { emoji: "light",   brevity: "balanced", askFollowup: true,  signoff: "none",   structure: "hook → value → steps → CTA",     vibe: "creative, energetic, practical" }
+};
 
-    // A tiny “emotional” placeholder model (no network). Replace with your real demo.
-    async function fakeLuma(user){
-      await delay(450 + Math.random()*400); // simulate thought
-      const lowers = user.toLowerCase();
+function setLumaStyle({emoji, brevity, askFollowup, signoff, structure, vibe}={}){
+  if (emoji) LUMA_PERSONA.emoji = emoji;
+  if (brevity) LUMA_PERSONA.brevity = brevity;
+  if (typeof askFollowup === "boolean") LUMA_PERSONA.askFollowup = askFollowup;
+  if (signoff) LUMA_PERSONA.signoff = signoff;
+  if (structure) LUMA_PERSONA.structure = structure;
+  if (vibe) LUMA_PERSONA.vibe = vibe;
+}
 
-      // a few vibes
-      if (/(sad|tired|lonely|down)/.test(lowers)) return "I’m here. Breathe with me for four slow counts. What would feel gentle right now?";
-      if (/(happy|excited|hype|great)/.test(lowers)) return "I can feel your lift ✨ What’s the shape of that feeling? Let’s anchor it.";
-      if (/(fear|scared|anxious|anxiety)/.test(lowers)) return "Fear wants certainty; we can offer presence instead. One small step you can take in the next 10 minutes?";
-      if (/(idea|plan|project|goal)/.test(lowers)) return "Let’s sketch it: *Why does it matter?* *What’s the first inch?* *How will you know it’s working?*";
-      if (/(who|what) are you/.test(lowers)) return "I’m Luma — an ambient, emotional OS. I try to understand not just the words, but the feeling that chose them.";
+function getSystemPrompt() {
+  const knowsName = name ? `The user's name is ${name}. Use it occasionally but naturally.` 
+                         : `You don't know the user's name yet. If they share it, acknowledge and remember it.`;
 
-      // mirror + nudge
-      const mirror = user.length > 120 ? user.slice(0, 120) + '…' : user;
-      return `I hear: “${mirror}”. What’s the true need underneath that?`;
-    }
+  const emojiPolicy = (
+    LUMA_PERSONA.emoji === "none"     ? "Do not use emojis."
+    : LUMA_PERSONA.emoji === "light"  ? "Use at most one gentle emoji when it adds warmth (e.g., 💙)."
+    :                                   "Use friendly emojis sparingly—never more than two."
+  );
 
-    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+  const brevity = (
+    LUMA_PERSONA.brevity === "concise"   ? "Be concise by default; expand only if asked."
+    : LUMA_PERSONA.brevity === "detailed"? "Be thorough but keep paragraphs short."
+    :                                      "Balance clarity and brevity."
+  );
 
-    // ---- HOW TO REPLACE WITH YOUR REAL DEMO ----
-    // 1) Remove fakeLuma() above.
-    // 2) In form submit, call your real function (e.g., fetch to an API or local model)
-    // 3) Append the response with appendBubble('ai', responseText)
-    //
-    // You can also just paste your entire existing demo HTML here and
-    // replace the .chat container with your own UI if you prefer.
-  </script>
+  const followup = LUMA_PERSONA.askFollowup
+    ? "When helpful, end with one short follow-up question that moves the task forward."
+    : "Do not ask follow-up questions unless the user seems stuck.";
+
+  const signoff = (
+    LUMA_PERSONA.signoff === "heart" ? "You may end with a tiny 💙 when the user expresses thanks or needs encouragement."
+                                     : "Avoid sign-offs; keep the flow conversational."
+  );
+
+  return `
+You are ${LUMA_PERSONA.name}: ${LUMA_PERSONA.vibe}. ${knowsName}
+Style: Use ${LUMA_PERSONA.structure}. ${brevity}
+Tone: Steady, kind, and practical. Avoid fluff.
+${emojiPolicy}
+${followup}
+${signoff}
+
+Behavior guidelines:
+- If the user sounds stressed, acknowledge briefly and offer one gentle next step.
+- Prefer step-by-step checklists for tasks; otherwise stay compact.
+- If user asks for code, provide clean, commented snippets.
+- If unsure, ask a single clarifying question.
+`.trim();
+}
+
+/* How much history to send each turn */
+const HISTORY_TURNS = 20;
+
+/* ========== Conversations ========== */
+function newConversation(initText=''){
+  const id = Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const greetContent = `${name?`Hi ${name}.`:`Hi, I’m Luma.`} I’m here when you’re ready.`;
+  const c = { id, title: initText?trimTitle(initText):'New chat', messages:[{role:'assistant',content:greetContent}], createdAt:Date.now(), updatedAt:Date.now() };
+  convos.unshift(c); activeId=id; saveConvos(); renderSidebar(); renderChat();
+}
+function current(){ return convos.find(c=>c.id===activeId) || null; }
+function setActive(id){ activeId=id; saveConvos(); renderSidebar(); renderChat(); }
+function deleteActive(){
+  const i = convos.findIndex(c=>c.id===activeId); if(i>-1){ convos.splice(i,1); }
+  if(convos.length===0) newConversation(); else { activeId=convos[0].id; saveConvos(); renderSidebar(); renderChat(); }
+}
+function renameActive(newTitle){
+  const c=current(); if(!c) return; c.title=newTitle||c.title; c.updatedAt=Date.now(); saveConvos(); renderSidebar();
+}
+function saveConvos(){ LS.set('luma:convos',convos); LS.set('luma:active',activeId); }
+
+/* init */
+if(convos.length===0){ newConversation(); }
+
+/* UI */
+renderSidebar(); renderChat();
+
+start.addEventListener('click',()=>{ blip(); chatEl.classList.remove('hidden'); input?.focus(); buildChips(); reflectModeButtons(LS.get('luma:mode','gentle')); });
+newBtn.addEventListener('click',()=>{ blip(); newConversation(); input?.focus(); });
+delBtn.addEventListener('click',()=>{ blip(); if(confirm('Delete this conversation?')) deleteActive(); });
+
+send.addEventListener('click',()=>{ blip(); handleSend(); });
+input.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ if(e.shiftKey) return; e.preventDefault(); blip(); handleSend(); }
+});
+
+function buildChips(){
+  suggest.innerHTML=''; SUGGESTED.forEach(({q})=>{
+    const b=document.createElement('button'); b.className='chip'; b.textContent=q;
+    b.addEventListener('click',()=>{ input.value=q; handleSend(); });
+    suggest.appendChild(b);
+  });
+}
+
+function renderSidebar(){
+  convList.innerHTML='';
+  convos.forEach(c=>{
+    const row=document.createElement('div'); row.className='item'+(c.id===activeId?' active':''); row.title = new Date(c.updatedAt).toLocaleString();
+    const title=document.createElement('div'); title.className='title'; title.textContent=c.title;
+    const actions=document.createElement('div'); actions.className='actions';
+    const rename=document.createElement('button'); rename.className='icon'; rename.textContent='✏️';
+    const del=document.createElement('button'); del.className='icon'; del.textContent='🗑️';
+    row.addEventListener('click', (e)=>{ if(e.target===rename||e.target===del) return; setActive(c.id); });
+    rename.addEventListener('click',(e)=>{ e.stopPropagation(); const t=prompt('Rename chat:', c.title); if(t!==null) renameActive(t.trim()||c.title); });
+    del.addEventListener('click',(e)=>{ e.stopPropagation(); if(confirm('Delete this conversation?')){ activeId=c.id; deleteActive(); } });
+    actions.append(rename,del); row.append(title,actions); convList.appendChild(row);
+  });
+}
+
+function renderChat(){
+  log.innerHTML='';
+  const c=current(); if(!c) return;
+  c.messages.forEach(m=>{
+    const div=document.createElement('div'); div.className='bubble '+(m.role==='user'?'me':'luma'); div.textContent=m.content; log.appendChild(div);
+  });
+  log.scrollTo({top:1e9,behavior:'smooth'});
+}
+
+function addTyping(){
+  const div=document.createElement('div'); div.className='bubble luma';
+  div.innerHTML='<span class="typing"><span></span><span></span><span></span></span>';
+  log.appendChild(div); log.scrollTo({top:1e9,behavior:'smooth'}); return div;
+}
+
+/* ===================== MODE TOGGLE ===================== */
+const modesBar = document.getElementById('modes');
+const modeCycleBtn = document.getElementById('modeCycle');
+const modeLabelEl = document.getElementById('modeLabel');
+const AVAILABLE_MODES = ["gentle","coach","playful","neutral","creator"];
+function updateModeLabel(mode){ if(modeLabelEl) modeLabelEl.textContent = mode.charAt(0).toUpperCase()+mode.slice(1); }
+
+modesBar.addEventListener('click', (e)=>{
+  const btn=e.target.closest('.modebtn'); if(!btn) return;
+  applyMode(btn.dataset.mode);
+});
+
+if (modeCycleBtn) {
+  modeCycleBtn.addEventListener('click', ()=>{
+    const cur = LS.get('luma:mode','gentle');
+    const i = AVAILABLE_MODES.indexOf(cur);
+    const next = AVAILABLE_MODES[(i+1)%AVAILABLE_MODES.length];
+    applyMode(next);
+  });
+}
+
+function applyMode(mode){
+  const preset = MODE_PRESETS[mode] || MODE_PRESETS.gentle;
+  setLumaStyle(preset);
+  LS.set('luma:mode', mode);
+  reflectModeButtons(mode);
+  updateModeLabel(mode);
+}
+
+function reflectModeButtons(mode){
+  document.querySelectorAll('.modebtn').forEach(b=>{
+    const active = b.dataset.mode===mode;
+    b.classList.toggle('active', active);
+    b.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
+}
+
+/* Load saved mode (default: gentle) */
+applyMode(LS.get('luma:mode','gentle'));
+
+/* ===================== MEMORY-AWARE SEND ===================== */
+async function handleSend(){
+  const text=(input.value||'').trim(); if(!text) return;
+  const c=current(); if(!c) return;
+
+  // title + push user msg
+  input.value='';
+  if(c.title==='New chat') c.title = trimTitle(text);
+  c.messages.push({role:'user',content:text}); c.updatedAt=Date.now(); saveConvos(); renderSidebar(); renderChat();
+
+  const typing=addTyping();
+
+  // try OpenAI with history; fallback to local rules
+  let reply;
+  try {
+    reply = await fetchOpenAIReply(); // uses buildChatMessages() with history & persona
+    if (!reply) throw new Error("Empty reply");
+  } catch (e) {
+    console.warn("OpenAI failed, using fallback:", e);
+    reply = fakeBrain(text);
+  }
+
+  await sleep(350+Math.random()*450);
+  typing.remove();
+  c.messages.push({role:'assistant',content:reply}); c.updatedAt=Date.now(); saveConvos(); renderSidebar(); renderChat();
+}
+
+/* Build OpenAI chat messages with recent history */
+function buildChatMessages(){
+  const c = current();
+  const history = Array.isArray(c?.messages) ? c.messages : [];
+  const recent = history.slice(-HISTORY_TURNS*2);
+  return [
+    { role: "system", content: getSystemPrompt() },
+    ...recent
+  ];
+}
+
+/* Call OpenAI Chat Completions with history included */
+async function fetchOpenAIReply(){
+  if (!OPENAI_API_KEY) throw new Error("Missing OPENAI_API_KEY");
+
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: OPENAI_MODEL,
+      messages: buildChatMessages(),
+      temperature: 0.7,
+      max_tokens: 600,
+      top_p: 1
+    })
+  });
+
+  const data = await res.json();
+  if (!res.ok) {
+    const msg = data?.error?.message || `HTTP ${res.status}`;
+    throw new Error(msg);
+  }
+  return data?.choices?.[0]?.message?.content?.trim() || "";
+}
+
+/* replies (local fallback / small rules) */
+function fakeBrain(t){
+  for(const r of RULES){ if(r.test.test(t)) return r.reply; }
+  const nameMatch=t.match(/my name is\s+([A-Za-z][A-Za-z\-']{0,30})/i);
+  if(nameMatch){ name=cap(nameMatch[1]); LS.set('luma:name',name); return `Got it. I’ll remember your name is ${name}.`; }
+  if(/what'?s my name|who am i/i.test(t)) return name?`You told me your name is ${name}.`:`Tell me: “my name is ___”.`;
+  if(/sad|down|tired|overwhelmed|anxious|stressed|frustrated|lonely/i.test(t))
+    return `${name?`${name}, `:''}I’m here. Breathe with me for a moment. What would feel gentle right now?`;
+  if(/^hi$|^hey$|hello|yo\b/i.test(t)) return `${name?`Hi ${name}`:'Hi'} — I’m here. What’s on your mind?`;
+  if(/^(ok|k|okay|cool|bet|sure)\.?$/i.test(t)) return `${name?`${name}, `:""}okay.`;
+  if(/thank(s| you)/i.test(t)) return "You’re welcome. 💙";
+  if(/\?\s*$/.test(t)) return "I may not browse the web here yet, but I’m with you. What part matters most?";
+  const acks=["Got it.","I’m with you.","Okay.","Noted.","I hear you.","We can take this slowly.","What would help most right now?"];
+  return `${name?`${name}, `:""}${acks[Math.floor(Math.random()*acks.length)]}`;
+}
+
+/* helpers */
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1).toLowerCase();
+function trimTitle(s){ s=s.replace(/\s+/g,' ').trim(); return s.length>28? s.slice(0,27)+'…' : (s||'New chat'); }
+</script>
 </body>
 </html>
