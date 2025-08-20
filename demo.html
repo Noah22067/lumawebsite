@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Luma — Demo</title>
+  <meta name="description" content="Try Luma — a minimal in-browser demo you can replace with your own." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#051122; --bg-2:#030915; --stroke:rgba(172,198,255,.12);
+      --text:#e8f1ff; --muted:#97a8c6; --accent:#8abaff; --accent-2:#6ea8ff;
+      --bubble:#0e1c36; --bubble-me:#17345e;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--text);
+      font-family:'Plus Jakarta Sans',Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 900px at 20% -10%, rgba(80,140,255,.22), transparent 60%),
+        radial-gradient(900px 700px at 110% 20%, rgba(80,180,255,.16), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg-2));
+      background-attachment:fixed;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+
+    /* Ambient orbs */
+    .ambient{pointer-events:none; position:fixed; inset:0; overflow:hidden; z-index:-1}
+    .orb{position:absolute; width:min(44vmax,780px); height:min(44vmax,780px); border-radius:50%;
+         filter:blur(42px); opacity:.28;
+         background:
+           radial-gradient(circle at 30% 30%, #bfe2ff, transparent 58%),
+           radial-gradient(circle at 72% 60%, #79baff, transparent 60%),
+           radial-gradient(circle at 45% 72%, #6fd1ff, transparent 55%);
+         animation:float 26s ease-in-out infinite}
+    .orb.o2{left:-10%; top:40%; animation-duration:34s; opacity:.22}
+    .orb.o3{right:-15%; top:-10%; animation-duration:30s; opacity:.2}
+    @keyframes float{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-3%,4%) scale(1.05)}100%{transform:translate(0,0) scale(1)}}
+    @media (prefers-reduced-motion: reduce){.orb{animation:none}}
+
+    /* Header */
+    .container{width:min(1100px,92%); margin:0 auto}
+    header{position:sticky; top:0; z-index:40; backdrop-filter:saturate(140%) blur(10px);
+           background:linear-gradient(180deg, rgba(3,9,21,.9), rgba(3,9,21,.55)); border-bottom:1px solid var(--stroke)}
+    .nav{display:flex; align-items:center; justify-content:space-between; height:64px}
+    .logo{display:inline-flex; align-items:center; gap:12px; text-decoration:none; color:var(--text)}
+    .logo-mark{width:28px; height:28px; border-radius:999px; background:
+               radial-gradient(circle at 30% 30%, #e6f3ff, #bfe2ff 45%, #9dd2ff 65%, #3a76ff 100%);
+               box-shadow:0 0 25px rgba(155,188,255,.7), inset 0 0 18px rgba(255,255,255,.7)}
+    .btn{padding:8px 12px; border:1px solid var(--stroke); border-radius:12px; color:var(--text); text-decoration:none}
+    .btn:hover{background:rgba(255,255,255,.05)}
+
+    /* Chat */
+    .wrap{padding:18px 0 28px}
+    .chat{background:rgba(255,255,255,.03); border:1px solid var(--stroke); border-radius:18px;
+          box-shadow:0 10px 30px rgba(0,0,0,.35); display:flex; flex-direction:column; height:calc(100vh - 120px)}
+    .messages{padding:18px; overflow:auto; flex:1}
+    .row{display:flex; gap:10px; margin:10px 0}
+    .row.me{justify-content:flex-end}
+    .bubble{max-width:70ch; padding:12px 14px; border-radius:14px; line-height:1.35; word-wrap:break-word; white-space:pre-wrap}
+    .bubble.me{background:var(--bubble-me)}
+    .bubble.ai{background:var(--bubble)}
+    .meta{font-size:12px; color:var(--muted); margin-top:4px}
+    .typing{opacity:.8; animation:pulse 1.4s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+
+    .composer{display:flex; gap:10px; padding:12px; border-top:1px solid var(--stroke)}
+    .composer input{flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--stroke); background:rgba(255,255,255,.04); color:var(--text)}
+    .composer button{padding:12px 16px; border-radius:12px; border:0; font-weight:800; color:#041226;
+                     background:linear-gradient(120deg, #4f89ff, #7ab6ff)}
+    .composer button:hover{filter:brightness(1.05)}
+  </style>
+</head>
+<body>
+  <!-- Ambient -->
+  <div class="ambient" aria-hidden="true">
+    <div class="orb o1" style="left:-20%; top:-20%"></div>
+    <div class="orb o2"></div>
+    <div class="orb o3"></div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="container nav">
+      <a class="logo" href="index.html"><span class="logo-mark"></span><span>Luma</span></a>
+      <div style="display:flex; gap:10px; align-items:center">
+        <a class="btn" href="index.html">Back to Site</a>
+        <a class="btn" id="clear">Clear</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Chat -->
+  <div class="container wrap">
+    <div class="chat" role="region" aria-label="Luma demo chat">
+      <div id="messages" class="messages"></div>
+
+      <form id="composer" class="composer" autocomplete="off">
+        <input id="prompt" type="text" placeholder="Speak to Luma…" />
+        <button type="submit">Send</button>
+      </form>
+    </div>
+    <p class="meta" style="margin-top:10px">
+      This is a local, in-browser demo. Replace the JS below with your own logic at any time.
+    </p>
+  </div>
+
+  <script>
+    // ---- Minimal in-browser demo logic (replace with your real demo when ready) ----
+    const messagesEl = document.getElementById('messages');
+    const form = document.getElementById('composer');
+    const input = document.getElementById('prompt');
+    const clearBtn = document.getElementById('clear');
+
+    // Load history from localStorage (optional)
+    let history = [];
+    try { history = JSON.parse(localStorage.getItem('luma_demo_history') || '[]'); } catch(_) {}
+    history.forEach(msg => appendBubble(msg.role, msg.text));
+
+    if (history.length === 0) {
+      appendBubble('ai', "Hello, I’m Luma.\nTell me something true and I’ll try to feel it with you.");
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      appendBubble('me', text);
+      save({ role: 'me', text });
+
+      const typing = appendBubble('ai', '…', true); // typing indicator
+      const reply = await fakeLuma(text);
+      typing.remove();
+      appendBubble('ai', reply);
+      save({ role: 'ai', text: reply });
+
+      // scroll to bottom
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    });
+
+    clearBtn.addEventListener('click', () => {
+      history = [];
+      try { localStorage.removeItem('luma_demo_history'); } catch(_) {}
+      messagesEl.innerHTML = '';
+      appendBubble('ai', "Cleared. We can begin again.");
+    });
+
+    // --- Helpers ---
+    function appendBubble(role, text, typing=false){
+      const row = document.createElement('div');
+      row.className = 'row ' + (role === 'me' ? 'me' : 'ai');
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble ' + (role === 'me' ? 'me' : 'ai');
+      if (typing) bubble.classList.add('typing');
+      bubble.textContent = text;
+
+      row.appendChild(bubble);
+      messagesEl.appendChild(row);
+      return bubble;
+    }
+
+    function save(msg){
+      history.push(msg);
+      try { localStorage.setItem('luma_demo_history', JSON.stringify(history).slice(0, 100000)); } catch(_) {}
+    }
+
+    // A tiny “emotional” placeholder model (no network). Replace with your real demo.
+    async function fakeLuma(user){
+      await delay(450 + Math.random()*400); // simulate thought
+      const lowers = user.toLowerCase();
+
+      // a few vibes
+      if (/(sad|tired|lonely|down)/.test(lowers)) return "I’m here. Breathe with me for four slow counts. What would feel gentle right now?";
+      if (/(happy|excited|hype|great)/.test(lowers)) return "I can feel your lift ✨ What’s the shape of that feeling? Let’s anchor it.";
+      if (/(fear|scared|anxious|anxiety)/.test(lowers)) return "Fear wants certainty; we can offer presence instead. One small step you can take in the next 10 minutes?";
+      if (/(idea|plan|project|goal)/.test(lowers)) return "Let’s sketch it: *Why does it matter?* *What’s the first inch?* *How will you know it’s working?*";
+      if (/(who|what) are you/.test(lowers)) return "I’m Luma — an ambient, emotional OS. I try to understand not just the words, but the feeling that chose them.";
+
+      // mirror + nudge
+      const mirror = user.length > 120 ? user.slice(0, 120) + '…' : user;
+      return `I hear: “${mirror}”. What’s the true need underneath that?`;
+    }
+
+    function delay(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+    // ---- HOW TO REPLACE WITH YOUR REAL DEMO ----
+    // 1) Remove fakeLuma() above.
+    // 2) In form submit, call your real function (e.g., fetch to an API or local model)
+    // 3) Append the response with appendBubble('ai', responseText)
+    //
+    // You can also just paste your entire existing demo HTML here and
+    // replace the .chat container with your own UI if you prefer.
+  </script>
+</body>
+</html>
