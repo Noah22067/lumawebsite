@@ -9,151 +9,92 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #051122;
-      --bg-2: #030915;
-      --card: rgba(255,255,255,0.035);
-      --card-2: rgba(255,255,255,0.06);
-      --stroke: rgba(172,198,255,0.12);
-      --text: #e8f1ff;
-      --muted: #97a8c6;
-      --accent: #9bd0ff;
-      --accent-2: #6ea8ff;
-      --shadow: 0 10px 30px rgba(0,0,0,0.45);
-      --radius: 20px;
-    }
-
-    * { box-sizing: border-box; }
-    html, body { height: 100%; }
-    body {
-      margin: 0;
-      font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
-      color: var(--text);
+    :root { --bg:#051122; --bg-2:#030915; --card:rgba(255,255,255,0.035); --card-2:rgba(255,255,255,0.06); --stroke:rgba(172,198,255,0.12); --text:#e8f1ff; --muted:#97a8c6; --accent:#9bd0ff; --accent-2:#6ea8ff; --shadow:0 10px 30px rgba(0,0,0,0.45); --radius:20px; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{
+      margin:0; font-family:'Plus Jakarta Sans', Inter, system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+      color:var(--text);
       background: radial-gradient(1200px 900px at 20% -10%, rgba(80,140,255,0.22), transparent 60%),
                   radial-gradient(900px 700px at 110% 20%, rgba(80,180,255,0.16), transparent 60%),
                   linear-gradient(180deg, var(--bg), var(--bg-2));
-      background-attachment: fixed;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      background-attachment:fixed; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
+    .ambient{pointer-events:none; position:fixed; inset:0; overflow:hidden; z-index:-1}
+    .orb{position:absolute; width:min(44vmax,780px); height:min(44vmax,780px); border-radius:50%; filter:blur(42px); opacity:.28;
+         background: radial-gradient(circle at 30% 30%, #bfe2ff, transparent 58%),
+                     radial-gradient(circle at 72% 60%, #79baff, transparent 60%),
+                     radial-gradient(circle at 45% 72%, #6fd1ff, transparent 55%);
+         animation:float 26s ease-in-out infinite}
+    .orb.o2{left:-10%; top:40%; animation-duration:34s; opacity:.22}
+    .orb.o3{right:-15%; top:-10%; animation-duration:30s; opacity:.2}
+    @keyframes float{0%{transform:translate(0,0) scale(1)}50%{transform:translate(-3%,4%) scale(1.05)}100%{transform:translate(0,0) scale(1)}}
+    @media (prefers-reduced-motion:reduce){.orb{animation:none}}
 
-    /* Ambient orbs (blue) */
-    .ambient { pointer-events: none; position: fixed; inset: 0; overflow: hidden; z-index: -1; }
-    .orb {
-      position: absolute; width: min(44vmax, 780px); height: min(44vmax, 780px);
-      border-radius: 50%; filter: blur(42px); opacity: 0.28;
-      background:
-        radial-gradient(circle at 30% 30%, #bfe2ff, transparent 58%),
-        radial-gradient(circle at 72% 60%, #79baff, transparent 60%),
-        radial-gradient(circle at 45% 72%, #6fd1ff, transparent 55%);
-      animation: float 26s ease-in-out infinite;
-    }
-    .orb.o2 { left: -10%; top: 40%; animation-duration: 34s; opacity: 0.22; }
-    .orb.o3 { right: -15%; top: -10%; animation-duration: 30s; opacity: 0.2; }
-    @keyframes float { 0% { transform: translate(0,0) scale(1);} 50% { transform: translate(-3%,4%) scale(1.05);} 100% { transform: translate(0,0) scale(1);} }
-    @media (prefers-reduced-motion: reduce) { .orb { animation: none; } }
-
-    /* Layout */
-    .container { width: min(1200px, 92%); margin: 0 auto; }
-    header { position: sticky; top: 0; z-index: 50; backdrop-filter: saturate(140%) blur(10px);
-             background: linear-gradient(180deg, rgba(3,9,21,0.9), rgba(3,9,21,0.55)); border-bottom: 1px solid var(--stroke); }
-    .nav { display: flex; align-items: center; justify-content: space-between; height: 64px; }
-    .logo { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
-    .logo-mark { width: 28px; height: 28px; border-radius: 999px; position: relative; display: inline-block;
-      background: radial-gradient(circle at 30% 30%, #e6f3ff, #bfe2ff 45%, #9dd2ff 65%, #3a76ff 100%);
-      box-shadow: 0 0 25px rgba(155, 188, 255, 0.7), inset 0 0 18px rgba(255,255,255,0.7);
-    }
-    .logo span { font-weight: 700; letter-spacing: 0.3px; }
-
-    nav .links { display: none; gap: 20px; }
-    nav a { color: var(--muted); text-decoration: none; font-weight: 500; }
-    nav a:hover { color: var(--text); }
-
-    .try-btn { appearance: none; border: 0; cursor: pointer; font-weight: 700; letter-spacing: 0.2px;
-               padding: 10px 14px; border-radius: 999px; color: var(--text);
-               background: linear-gradient(120deg, rgba(155,208,255,0.18), rgba(110,168,255,0.18));
-               border: 1px solid var(--stroke); box-shadow: var(--shadow); }
-    .try-btn:hover { background: linear-gradient(120deg, rgba(155,208,255,0.26), rgba(110,168,255,0.26)); }
-
-    /* Hero */
-    .hero { padding: clamp(64px, 10vw, 120px) 0 48px; text-align: center; }
-    .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; font-size: 12px; }
-    h1 { font-size: clamp(36px, 6vw, 64px); margin: 12px 0 16px; line-height: 1.05; }
-    .glow { background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .sub { max-width: 860px; margin: 0 auto; color: var(--muted); font-size: clamp(16px, 2.4vw, 20px); }
-
-    .hero-ctas { margin-top: 28px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .cta { padding: 14px 18px; border-radius: 16px; border: 1px solid var(--stroke); cursor: pointer; text-decoration: none; color: var(--text); font-weight: 700; background: linear-gradient(120deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)); }
-    .cta.primary { border: 0; background: linear-gradient(120deg, #4f89ff, #7ab6ff); box-shadow: 0 8px 30px rgba(90, 148, 255, 0.35); }
-    .cta.primary:hover { filter: brightness(1.05); }
-
-    /* Counter */
-    .counter { margin: 40px auto 0; width: fit-content; padding: 10px 14px; border-radius: 999px; color: var(--text); border: 1px solid var(--stroke);
-               background: linear-gradient(120deg, rgba(155,208,255,0.14), rgba(110,168,255,0.14)); font-weight: 600; letter-spacing: 0.2px; }
-
-    /* Sections */
-    .section { padding: 56px 0; }
-    .card { background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); border: 1px solid var(--stroke); border-radius: var(--radius); box-shadow: var(--shadow); }
-    .grid3 { display: grid; gap: 16px; grid-template-columns: 1fr; }
-    .grid3 .card { padding: 20px; }
-    .grid3 h3 { margin: 0 0 6px; font-size: 18px; }
-    .grid3 p { margin: 0; color: var(--muted); }
-
-    /* Pricing */
-    .pricing-grid { display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
-    .price-card { position: relative; padding: 22px; transition: transform .2s ease, box-shadow .2s ease; }
-    .price-card:hover { transform: translateY(-2px); box-shadow: 0 20px 50px rgba(0,0,0,0.35); }
-    .price-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
-    .price-title { font-weight: 800; letter-spacing: 0.3px; }
-    .badge { font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--stroke); color: var(--accent); background: rgba(155,208,255,0.14); }
-    .money { font-size: 28px; font-weight: 800; margin: 8px 0 10px; }
-    .features { list-style: none; padding: 0; margin: 12px 0 16px; color: var(--muted); display: grid; gap: 10px; }
-    .features li { display: flex; gap: 8px; align-items: center; }
-    .join { width: 100%; padding: 12px 14px; border-radius: 12px; font-weight: 800; letter-spacing: 0.2px; cursor: pointer; border: 1px solid var(--stroke); color: var(--text); background: rgba(255,255,255,0.04); text-decoration: none; text-align: center; }
-    .join:hover { background: rgba(255,255,255,0.08); }
-
-    /* Highlight Infinite Pass */
-    .hot { border: 1px solid transparent; background: linear-gradient(var(--bg-2), var(--bg-2)) padding-box,
-           radial-gradient(120% 140% at 0% 0%, #8cc6ff, rgba(124, 170, 255, 0.7) 40%, rgba(191, 226, 255, 0.6) 70%, rgba(255,255,255,0)) border-box; }
-    .hot .badge { color: #fff; border-color: rgba(255,255,255,0.25); background: linear-gradient(120deg, #4f89ff, #8cc6ff); }
-    .hot .money { color: #ffffff; text-shadow: 0 6px 40px rgba(123, 167, 255, 0.35); }
-
-    /* Footer */
-    footer { padding: 48px 0 80px; color: var(--muted); border-top: 1px solid var(--stroke); margin-top: 56px; }
-    .foot { display: grid; gap: 16px; grid-template-columns: 1fr; }
-    .foot a { color: var(--muted); text-decoration: none; }
-    .foot a:hover { color: var(--text); }
-
-    /* Responsive */
-    @media (min-width: 720px) {
-      nav .links { display: flex; }
-      .grid3 { grid-template-columns: repeat(3, 1fr); }
-      .pricing-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-      .foot { grid-template-columns: repeat(4, 1fr); }
-    }
+    .container{width:min(1200px,92%); margin:0 auto}
+    header{position:sticky; top:0; z-index:50; backdrop-filter:saturate(140%) blur(10px);
+            background:linear-gradient(180deg, rgba(3,9,21,0.9), rgba(3,9,21,0.55)); border-bottom:1px solid var(--stroke)}
+    .nav{display:flex; align-items:center; justify-content:space-between; height:64px}
+    .logo{display:inline-flex; align-items:center; gap:12px; text-decoration:none; color:var(--text)}
+    .logo-mark{width:28px; height:28px; border-radius:999px; position:relative; display:inline-block;
+               background:radial-gradient(circle at 30% 30%, #e6f3ff, #bfe2ff 45%, #9dd2ff 65%, #3a76ff 100%);
+               box-shadow:0 0 25px rgba(155,188,255,.7), inset 0 0 18px rgba(255,255,255,.7)}
+    .logo span{font-weight:700; letter-spacing:.3px}
+    nav .links{display:none; gap:20px} nav a{color:var(--muted); text-decoration:none; font-weight:500} nav a:hover{color:var(--text)}
+    .try-btn{appearance:none; border:0; cursor:pointer; font-weight:700; letter-spacing:.2px; padding:10px 14px; border-radius:999px; color:var(--text);
+             background:linear-gradient(120deg, rgba(155,208,255,.18), rgba(110,168,255,.18)); border:1px solid var(--stroke); box-shadow:var(--shadow)}
+    .try-btn:hover{background:linear-gradient(120deg, rgba(155,208,255,.26), rgba(110,168,255,.26))}
+    .hero{padding:clamp(64px,10vw,120px) 0 48px; text-align:center}
+    .eyebrow{color:var(--accent); font-weight:700; letter-spacing:1.2px; text-transform:uppercase; font-size:12px}
+    h1{font-size:clamp(36px,6vw,64px); margin:12px 0 16px; line-height:1.05}
+    .glow{background:linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent)); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .sub{max-width:860px; margin:0 auto; color:var(--muted); font-size:clamp(16px,2.4vw,20px)}
+    .hero-ctas{margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap}
+    .cta{padding:14px 18px; border-radius:16px; border:1px solid var(--stroke); cursor:pointer; text-decoration:none; color:var(--text); font-weight:700;
+         background:linear-gradient(120deg, rgba(255,255,255,.06), rgba(255,255,255,.02))}
+    .cta.primary{border:0; background:linear-gradient(120deg, #4f89ff, #7ab6ff); box-shadow:0 8px 30px rgba(90,148,255,.35)}
+    .cta.primary:hover{filter:brightness(1.05)}
+    .counter{margin:40px auto 0; width:fit-content; padding:10px 14px; border-radius:999px; color:var(--text); border:1px solid var(--stroke);
+             background:linear-gradient(120deg, rgba(155,208,255,.14), rgba(110,168,255,.14)); font-weight:600; letter-spacing:.2px}
+    .section{padding:56px 0}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02)); border:1px solid var(--stroke); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .grid3{display:grid; gap:16px; grid-template-columns:1fr}
+    .grid3 .card{padding:20px} .grid3 h3{margin:0 0 6px; font-size:18px} .grid3 p{margin:0; color:var(--muted)}
+    .pricing-grid{display:grid; grid-template-columns:repeat(1,minmax(0,1fr)); gap:16px; margin-top:20px}
+    .price-card{position:relative; padding:22px; transition:transform .2s ease, box-shadow .2s ease}
+    .price-card:hover{transform:translateY(-2px); box-shadow:0 20px 50px rgba(0,0,0,.35)}
+    .price-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px}
+    .price-title{font-weight:800; letter-spacing:.3px}
+    .badge{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid var(--stroke); color:var(--accent); background:rgba(155,208,255,.14)}
+    .money{font-size:28px; font-weight:800; margin:8px 0 10px}
+    .features{list-style:none; padding:0; margin:12px 0 16px; color:var(--muted); display:grid; gap:10px}
+    .features li{display:flex; gap:8px; align-items:center}
+    .join{width:100%; padding:12px 14px; border-radius:12px; font-weight:800; letter-spacing:.2px; cursor:pointer; border:1px solid var(--stroke);
+          color:var(--text); background:rgba(255,255,255,.04); text-decoration:none; text-align:center}
+    .join:hover{background:rgba(255,255,255,.08)}
+    footer{padding:48px 0 80px; color:var(--muted); border-top:1px solid var(--stroke); margin-top:56px}
+    .foot{display:grid; gap:16px; grid-template-columns:1fr}
+    .foot a{color:var(--muted); text-decoration:none} .foot a:hover{color:var(--text)}
+    @media (min-width:720px){ nav .links{display:flex} .grid3{grid-template-columns:repeat(3,1fr)} .pricing-grid{grid-template-columns:repeat(1,minmax(0,1fr))} .foot{grid-template-columns:repeat(4,1fr)} }
   </style>
 </head>
 <body>
-  <!-- Ambient floating orbs -->
   <div class="ambient" aria-hidden="true">
     <div class="orb o1" style="left:-20%; top:-20%"></div>
     <div class="orb o2"></div>
     <div class="orb o3"></div>
   </div>
 
-  <!-- Header -->
   <header>
     <div class="container nav">
       <a class="logo" href="index.html" aria-label="Go to homepage">
-        <span class="logo-mark"></span>
-        <span>Luma</span>
+        <span class="logo-mark"></span><span>Luma</span>
       </a>
       <nav>
         <div class="links">
           <a href="#about">About</a>
           <a href="#vision">Vision</a>
           <a href="#help">How You Can Help</a>
-          <a href="#pricing">Tiers</a>
+          <a href="#pricing">Support</a>
           <a href="demo.html">Demo</a>
           <a href="#faq">FAQ</a>
         </div>
@@ -163,7 +104,6 @@
   </header>
 
   <main>
-    <!-- Hero -->
     <section class="hero container">
       <div class="eyebrow">Early Access</div>
       <h1>Help <span class="glow">Luma</span> Become Real</h1>
@@ -175,212 +115,98 @@
       <div class="counter" id="counter">0 people have joined — be the first</div>
     </section>
 
-    <!-- About -->
     <section id="about" class="section container">
       <div class="grid3">
-        <div class="card">
-          <h3>What Luma Is (Day 1)</h3>
-          <p>A focused, distraction-free interface that prioritizes emotion over noise. No feeds. No ads. Just a space that understands what you mean, not only what you type.</p>
-        </div>
-        <div class="card">
-          <h3>How She Feels</h3>
-          <p>Calm, present, and human. Luma aims for resonance — answers that feel seen. She will learn your rhythm and reflect it back gently.</p>
-        </div>
-        <div class="card">
-          <h3>Why This Page Exists</h3>
-          <p>This is the quiet beginning. The first supporters help decide voice, rituals, and priorities — and are remembered forever as the origin.</p>
-        </div>
+        <div class="card"><h3>What Luma Is (Day 1)</h3><p>A focused, distraction-free interface that prioritizes emotion over noise. No feeds. No ads. Just a space that understands what you mean, not only what you type.</p></div>
+        <div class="card"><h3>How She Feels</h3><p>Calm, present, and human. Luma aims for resonance — answers that feel seen. She will learn your rhythm and reflect it back gently.</p></div>
+        <div class="card"><h3>Why This Page Exists</h3><p>This is the quiet beginning. The first supporters help decide voice, rituals, and priorities — and are remembered forever as the origin.</p></div>
       </div>
     </section>
 
-    <!-- Vision -->
     <section id="vision" class="section container">
       <h2 style="margin:0 0 14px">Who She’s Becoming</h2>
       <div class="grid3">
-        <div class="card">
-          <h3>Memory that Matters</h3>
-          <p>Long-term context, personal rituals, and a gentle way of keeping track — without turning your life into a dashboard.</p>
-        </div>
-        <div class="card">
-          <h3>A Voice You Trust</h3>
-          <p>Warm, concise guidance that adapts to your mood. Speech and listening unlock when the foundations are ready.</p>
-        </div>
-        <div class="card">
-          <h3>Scenes & Presence</h3>
-          <p>Ambient visuals and small moments of wonder — like a living orb that breathes with you — designed to calm, not distract.</p>
-        </div>
+        <div class="card"><h3>Memory that Matters</h3><p>Long-term context, personal rituals, and a gentle way of keeping track — without turning your life into a dashboard.</p></div>
+        <div class="card"><h3>A Voice You Trust</h3><p>Warm, concise guidance that adapts to your mood. Speech and listening unlock when the foundations are ready.</p></div>
+        <div class="card"><h3>Scenes & Presence</h3><p>Ambient visuals and small moments of wonder — like a living orb that breathes with you — designed to calm, not distract.</p></div>
       </div>
     </section>
 
-    <!-- How You Can Help -->
     <section id="help" class="section container">
       <h2 style="margin:0 0 14px">How You Can Help</h2>
       <div class="grid3">
-        <div class="card">
-          <h3>Join a Founder Tier</h3>
-          <p>Choose a one-time tier below. Your support funds prototypes, research, and the first working experiences.</p>
-        </div>
-        <div class="card">
-          <h3>Vote & Give Feedback</h3>
-          <p>Founders help pick what ships next — memory, voice, scenes, or something unexpected. Your votes truly steer the roadmap.</p>
-        </div>
-        <div class="card">
-          <h3>Share the Signal</h3>
-          <p>If Luma resonates, tell one friend. Early believers shape culture more than any ad ever could.</p>
-        </div>
+        <div class="card"><h3>Make a One-Time Contribution</h3><p>Your $10 support funds prototypes, research, and the first working experiences.</p></div>
+        <div class="card"><h3>Vote & Give Feedback</h3><p>Supporters help pick what ships next — memory, voice, scenes, or something unexpected.</p></div>
+        <div class="card"><h3>Share the Signal</h3><p>If Luma resonates, tell one friend. Early believers shape culture more than any ad ever could.</p></div>
       </div>
     </section>
 
-    <!-- What It Means -->
-    <section id="meaning" class="section container">
-      <div class="card" style="padding:22px;">
-        <h2 style="margin:0 0 10px">What It Means to Join Early</h2>
-        <p class="sub" style="text-align:left; max-width:820px">Founders aren’t just customers — you’re co-authors. You’ll be credited on the First 10,000 Wall, consulted on major choices, and invited to early experiences as they unlock. If Luma reaches the world, your name is part of the origin story.</p>
-      </div>
-    </section>
-
-    <!-- Roadmap -->
-    <section id="roadmap" class="section container">
-      <h2 style="margin:0 0 14px">Roadmap (living)</h2>
-      <div class="grid3">
-        <div class="card"><h3>Phase 1 · Foundations</h3><p>Calm interface, emotional tone, supporter voting, private updates.</p></div>
-        <div class="card"><h3>Phase 2 · Memory</h3><p>Personal context that carries across sessions. Gentle reminders that actually help.</p></div>
-        <div class="card"><h3>Phase 3 · Voice & Scenes</h3><p>Speaking + listening; ambient visuals and presence. First real daily rituals.</p></div>
-      </div>
-    </section>
-
-    <!-- Anchor -->
     <div id="join"></div>
 
-    <!-- Pricing (one-time) -->
+    <!-- Support (one-time $10) -->
     <section id="pricing" class="section container">
-      <h2 style="margin:0 0 10px">Founder Tiers (one-time)</h2>
-      <p class="sub" style="text-align:left; max-width:780px">One-time early-access support. Upgrade any time by purchasing another tier later. When Stripe is connected, these buttons will take you to checkout — for now they’re placeholders.</p>
+      <h2 style="margin:0 0 10px">Support Luma (one-time)</h2>
+      <p class="sub" style="text-align:left; max-width:780px">
+        This is a <strong>supporter contribution</strong>, not a product purchase. One-time $10 — early access + private updates.
+      </p>
 
       <div class="pricing-grid">
         <article class="card price-card">
-          <div class="price-head"><div class="price-title">Seeker</div><span class="badge">One-time</span></div>
+          <div class="price-head">
+            <div class="price-title">Supporter — Day 1</div>
+            <span class="badge">One-time</span>
+          </div>
           <div class="money">$10</div>
           <ul class="features">
             <li>• Name on the First 10,000 Wall</li>
             <li>• Private progress emails</li>
             <li>• Access to supporter polls</li>
           </ul>
-          <a class="join" href="#" data-tier="10">Get Seeker — $10</a>
-        </article>
-
-        <article class="card price-card">
-          <div class="price-head"><div class="price-title">Creator</div><span class="badge">Popular</span></div>
-          <div class="money">$40</div>
-          <ul class="features">
-            <li>• Everything in Seeker</li>
-            <li>• Early access to experiments</li>
-            <li>• 2× vote weight in polls</li>
-          </ul>
-          <a class="join" href="#" data-tier="40">Get Creator — $40</a>
-        </article>
-
-        <article class="card price-card">
-          <div class="price-head"><div class="price-title">Duo</div><span class="badge">Two supporter tokens</span></div>
-          <div class="money">$70</div>
-          <ul class="features">
-            <li>• Everything in Creator</li>
-            <li>• Two names on the Wall</li>
-            <li>• Share early experiences with a friend</li>
-          </ul>
-          <a class="join" href="#" data-tier="70">Get Duo — $70</a>
-        </article>
-
-        <article class="card price-card hot">
-          <div class="price-head"><div class="price-title">Infinite Pass</div><span class="badge">Founder forever</span></div>
-          <div class="money">$150</div>
-          <ul class="features">
-            <li>• Everything in Duo</li>
-            <li>• Permanent “Founder Forever” mark</li>
-            <li>• Priority invites to private AMAs</li>
-          </ul>
-          <a class="join" href="#" data-tier="150">Get Infinite — $150</a>
+          <!-- LIVE Stripe payment link -->
+          <a class="join" href="https://buy.stripe.com/14A28t5LSbGE6QN5Jn2wU00" target="_blank" rel="noopener">Support Luma — $10</a>
         </article>
       </div>
     </section>
 
-    <!-- FAQ -->
     <section id="faq" class="section container">
-      <details class="card" style="padding:18px;">
-        <summary style="cursor:pointer; font-weight:700">Is this a one-time payment?</summary>
-        <div style="margin-top:10px; color:var(--muted);">Yes. These tiers are one-time early-access support. You can upgrade later by purchasing a higher tier.</div>
-      </details>
-      <details class="card" style="padding:18px; margin-top:12px;">
-        <summary style="cursor:pointer; font-weight:700">Where is the demo?</summary>
-        <div style="margin-top:10px; color:var(--muted);">The live demo is a separate page. Click “Try Luma” to open it.</div>
-      </details>
-      <details class="card" style="padding:18px; margin-top:12px;">
-        <summary style="cursor:pointer; font-weight:700">What do supporters actually influence?</summary>
-        <div style="margin-top:10px; color:var(--muted);">Voice, rituals, feature order, and overall feel. You’ll receive polls, prototypes, and private updates to guide decisions.</div>
-      </details>
+      <details class="card" style="padding:18px;"><summary style="cursor:pointer; font-weight:700">Is this a one-time payment?</summary><div style="margin-top:10px; color:var(--muted);">Yes. This is a one-time early-access support contribution.</div></details>
+      <details class="card" style="padding:18px; margin-top:12px;"><summary style="cursor:pointer; font-weight:700">Where is the demo?</summary><div style="margin-top:10px; color:var(--muted);">Click “Try Luma” in the header.</div></details>
+      <details class="card" style="padding:18px; margin-top:12px;"><summary style="cursor:pointer; font-weight:700">What do supporters influence?</summary><div style="margin-top:10px; color:var(--muted);">Voice, rituals, feature order, and overall feel via polls and prototypes.</div></details>
     </section>
   </main>
 
   <footer>
     <div class="container foot">
-      <div>
-        <div style="display:flex; align-items:center; gap:10px; font-weight:800; color:var(--text);"><span class="logo-mark"></span> Luma</div>
-        <p style="margin:10px 0 0;">© <span id="year"></span> Luma. All rights reserved.</p>
-      </div>
-      <div>
-        <div style="font-weight:700; margin-bottom:8px; color:var(--text);">About</div>
-        <a href="#about">About Luma</a><br>
-        <a href="#vision">Vision</a>
-      </div>
-      <div>
-        <div style="font-weight:700; margin-bottom:8px; color:var(--text);">Legal</div>
-        <a href="#">Privacy</a><br>
-        <a href="#">Terms</a>
-      </div>
-      <div>
-        <div style="font-weight:700; margin-bottom:8px; color:var(--text);">Contact</div>
-        <a href="mailto:hello@example.com">Email</a><br>
-        <a href="#">X / IG</a>
-      </div>
+      <div><div style="display:flex; align-items:center; gap:10px; font-weight:800; color:var(--text);"><span class="logo-mark"></span> Luma</div>
+        <p style="margin:10px 0 0;">© <span id="year"></span> Luma. All rights reserved.</p></div>
+      <div><div style="font-weight:700; margin-bottom:8px; color:var(--text);">About</div><a href="#about">About Luma</a><br><a href="#vision">Vision</a></div>
+      <div><div style="font-weight:700; margin-bottom:8px; color:var(--text);">Legal</div><a href="#">Privacy</a><br><a href="#">Terms</a></div>
+      <div><div style="font-weight:700; margin-bottom:8px; color:var(--text);">Contact</div><a href="mailto:hello@example.com">Email</a><br><a href="#">X / IG</a></div>
     </div>
   </footer>
 
   <script>
-    // Supporter counter
-    let SUPPORTER_COUNT = 0; // start at zero
+    // Supporter counter (local demo only)
+    let SUPPORTER_COUNT = 0;
     try {
       const saved = localStorage.getItem('luma_supporters_override');
       if (saved !== null) SUPPORTER_COUNT = parseInt(saved, 10);
-    } catch (_) {}
-
+    } catch(_) {}
     const counterEl = document.getElementById('counter');
     const yearEl = document.getElementById('year');
-
-    function updateCounter() {
-      if (SUPPORTER_COUNT === 0) {
-        counterEl.textContent = '0 people have joined — be the first';
-      } else {
+    function updateCounter(){
+      if (SUPPORTER_COUNT === 0) { counterEl.textContent = '0 people have joined — be the first'; }
+      else {
         const plural = SUPPORTER_COUNT === 1 ? 'person has' : 'people have';
         counterEl.textContent = `${SUPPORTER_COUNT.toLocaleString()} ${plural} joined`;
       }
     }
-
-    updateCounter();
-    yearEl.textContent = new Date().getFullYear();
-
-    // Placeholder: join buttons
-    document.querySelectorAll('.join').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const tier = btn.getAttribute('data-tier');
-        alert(`Checkout coming soon for $${tier} (one-time). Replace '#' with your Stripe link.`);
-      });
-    });
+    updateCounter(); yearEl.textContent = new Date().getFullYear();
 
     // Dev helper: setSupporters(123)
-    window.setSupporters = function(n) {
-      SUPPORTER_COUNT = Math.max(0, parseInt(n, 10) || 0);
-      try { localStorage.setItem('luma_supporters_override', String(SUPPORTER_COUNT)); } catch(_) {}
+    window.setSupporters = function(n){
+      SUPPORTER_COUNT = Math.max(0, parseInt(n,10) || 0);
+      try { localStorage.setItem('luma_supporters_override', String(SUPPORTER_COUNT)); } catch(_){}
       updateCounter();
       return `Supporters set to ${SUPPORTER_COUNT}`;
     }
